@@ -43,12 +43,6 @@ func (tx Tx) Bytes() []byte {
 	return tx
 }
 
-// Bytes returns the raw transaction bytes.
-func (tx *Tx) Unmarshal(bz []byte) error {
-	*tx = bz
-	return nil
-}
-
 // Hash computes the TMHASH hash of the wire encoded transaction.
 func (tx Tx) Hash() []byte {
 	return tmhash.Sum(tx)

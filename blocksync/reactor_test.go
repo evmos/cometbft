@@ -109,7 +109,7 @@ func newReactor(
 		DiscardABCIResponses: false,
 	})
 	blockExec := sm.NewBlockExecutor(stateStore, log.TestingLogger(), proxyApp.Consensus(),
-		mp, sm.EmptyEvidencePool{}, blockStore)
+		mp, sm.EmptyEvidencePool{}, blockStore, types.DefaultTxDecoder)
 	if err = stateStore.Save(state); err != nil {
 		panic(err)
 	}

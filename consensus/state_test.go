@@ -1161,7 +1161,6 @@ func TestStateLockPOLDoesNotUnlock(t *testing.T) {
 
 	// verify that we haven't update our locked block since the first round
 	validatePrecommit(t, cs1, round, 0, vss[0], nil, theBlockHash)
-
 }
 
 // TestStateLockMissingProposalWhenPOLSeenDoesNotUnlock tests that observing
@@ -3110,7 +3109,7 @@ func findBlockSizeLimit(t *testing.T, height, maxBytes int64, cs *State, partSiz
 	for i := softMaxDataBytes; i < softMaxDataBytes*2; i++ {
 		propBlock := cs.state.MakeBlock(
 			height,
-			[]types.Tx{[]byte("a=" + strings.Repeat("o", i-2))},
+			types.Txs{types.Tx([]byte("a=" + strings.Repeat("o", i-2)))},
 			&types.Commit{},
 			nil,
 			cs.privValidatorPubKey.Address(),

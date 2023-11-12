@@ -297,6 +297,7 @@ func TestCreateProposalBlock(t *testing.T) {
 	mempool := mempl.NewCListMempool(config.Mempool,
 		proxyApp.Mempool(),
 		state.LastBlockHeight,
+		types.DefaultTxDecoder,
 		mempl.WithMetrics(memplMetrics),
 		mempl.WithPreCheck(sm.TxPreCheck(state)),
 		mempl.WithPostCheck(sm.TxPostCheck(state)))
@@ -340,6 +341,7 @@ func TestCreateProposalBlock(t *testing.T) {
 		mempool,
 		evidencePool,
 		blockStore,
+		types.DefaultTxDecoder,
 	)
 
 	extCommit := &types.ExtendedCommit{Height: height - 1}
@@ -398,6 +400,7 @@ func TestMaxProposalBlockSize(t *testing.T) {
 	mempool := mempl.NewCListMempool(config.Mempool,
 		proxyApp.Mempool(),
 		state.LastBlockHeight,
+		types.DefaultTxDecoder,
 		mempl.WithMetrics(memplMetrics),
 		mempl.WithPreCheck(sm.TxPreCheck(state)),
 		mempl.WithPostCheck(sm.TxPostCheck(state)))
@@ -406,7 +409,8 @@ func TestMaxProposalBlockSize(t *testing.T) {
 
 	// fill the mempool with one txs just below the maximum size
 	txLength := int(types.MaxDataBytesNoEvidence(maxBytes, 1))
-	tx := cmtrand.Bytes(txLength - 4) // to account for the varint
+	txBz := cmtrand.Bytes(txLength - 4) // to account for the varint
+	tx := types.Tx(txBz)
 	_, err = mempool.CheckTx(tx)
 	assert.NoError(t, err)
 
@@ -417,6 +421,7 @@ func TestMaxProposalBlockSize(t *testing.T) {
 		mempool,
 		sm.EmptyEvidencePool{},
 		blockStore,
+		types.DefaultTxDecoder,
 	)
 
 	extCommit := &types.ExtendedCommit{Height: height - 1}
@@ -466,6 +471,7 @@ func TestNodeNewNodeCustomReactors(t *testing.T) {
 		cfg.DefaultDBProvider,
 		DefaultMetricsProvider(config.Instrumentation),
 		log.TestingLogger(),
+		types.DefaultTxDecoder,
 		CustomReactors(map[string]p2p.Reactor{"FOO": cr, "BLOCKSYNC": customBlocksyncReactor}),
 	)
 	require.NoError(t, err)
@@ -517,6 +523,7 @@ func TestNodeNewNodeDeleteGenesisFileFromDB(t *testing.T) {
 		cfg.DefaultDBProvider,
 		DefaultMetricsProvider(config.Instrumentation),
 		log.TestingLogger(),
+		types.DefaultTxDecoder,
 	)
 	require.NoError(t, err)
 
@@ -561,6 +568,7 @@ func TestNodeNewNodeGenesisHashMismatch(t *testing.T) {
 		cfg.DefaultDBProvider,
 		DefaultMetricsProvider(config.Instrumentation),
 		log.TestingLogger(),
+		types.DefaultTxDecoder,
 	)
 	require.NoError(t, err)
 
@@ -603,6 +611,7 @@ func TestNodeNewNodeGenesisHashMismatch(t *testing.T) {
 		cfg.DefaultDBProvider,
 		DefaultMetricsProvider(config.Instrumentation),
 		log.TestingLogger(),
+		types.DefaultTxDecoder,
 	)
 	require.Error(t, err, "NewNode should error when genesisDoc is changed")
 	require.Equal(t, "genesis doc hash in db does not match loaded genesis doc", err.Error())
@@ -632,6 +641,7 @@ func TestNodeGenesisHashFlagMatch(t *testing.T) {
 		cfg.DefaultDBProvider,
 		DefaultMetricsProvider(config.Instrumentation),
 		log.TestingLogger(),
+		types.DefaultTxDecoder,
 	)
 	require.NoError(t, err)
 }
@@ -664,6 +674,7 @@ func TestNodeGenesisHashFlagMismatch(t *testing.T) {
 		cfg.DefaultDBProvider,
 		DefaultMetricsProvider(config.Instrumentation),
 		log.TestingLogger(),
+		types.DefaultTxDecoder,
 	)
 	require.Error(t, err)
 

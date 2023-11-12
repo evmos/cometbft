@@ -71,7 +71,7 @@ func TestGenerateReport(t *testing.T) {
 		blocks: []*types.Block{
 			{
 				Data: types.Data{
-					Txs: types.Txs{b1, b2},
+					Txs: types.Txs{types.Tx(b1), types.Tx(b2)},
 				},
 			},
 			{
@@ -81,12 +81,12 @@ func TestGenerateReport(t *testing.T) {
 					Time: t1,
 				},
 				Data: types.Data{
-					Txs: types.Txs{[]byte("error")},
+					Txs: types.Txs{types.Tx([]byte("error"))},
 				},
 			},
 			{
 				Data: types.Data{
-					Txs: types.Txs{b3, b3},
+					Txs: types.Txs{types.Tx(b3), types.Tx(b3)},
 				},
 			},
 			{

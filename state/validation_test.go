@@ -58,6 +58,7 @@ func TestValidateBlockHeader(t *testing.T) {
 		mp,
 		sm.EmptyEvidencePool{},
 		blockStore,
+		types.DefaultTxDecoder,
 	)
 	lastCommit := &types.Commit{}
 	var lastExtCommit *types.ExtendedCommit
@@ -155,6 +156,7 @@ func TestValidateBlockCommit(t *testing.T) {
 		mp,
 		sm.EmptyEvidencePool{},
 		blockStore,
+		types.DefaultTxDecoder,
 	)
 	lastCommit := &types.Commit{}
 	var lastExtCommit *types.ExtendedCommit
@@ -307,6 +309,7 @@ func TestValidateBlockEvidence(t *testing.T) {
 		mp,
 		evpool,
 		blockStore,
+		types.DefaultTxDecoder,
 	)
 	lastCommit := &types.Commit{}
 	var lastExtCommit *types.ExtendedCommit

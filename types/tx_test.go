@@ -16,7 +16,7 @@ import (
 func makeTxs(cnt, size int) Txs {
 	txs := make(Txs, cnt)
 	for i := 0; i < cnt; i++ {
-		txs[i] = cmtrand.Bytes(size)
+		txs[i] = Tx(cmtrand.Bytes(size))
 	}
 	return txs
 }
@@ -51,8 +51,8 @@ func TestValidTxProof(t *testing.T) {
 	cases := []struct {
 		txs Txs
 	}{
-		{Txs{{1, 4, 34, 87, 163, 1}}},
-		{Txs{{5, 56, 165, 2}, {4, 77}}},
+		{Txs{Tx{1, 4, 34, 87, 163, 1}}},
+		{Txs{Tx{5, 56, 165, 2}, Tx{4, 77}}},
 		{Txs{Tx("foo"), Tx("bar"), Tx("baz")}},
 		{makeTxs(20, 5)},
 		{makeTxs(7, 81)},
