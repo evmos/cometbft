@@ -81,7 +81,6 @@ type State struct {
 
 // Copy makes a copy of the State for mutating.
 func (state State) Copy() State {
-
 	return State{
 		Version:       state.Version,
 		ChainID:       state.ChainID,
@@ -233,12 +232,11 @@ func FromProto(pb *cmtstate.State) (*State, error) { //nolint:golint
 // track rounds, and hence does not know the correct proposer. TODO: fix this!
 func (state State) MakeBlock(
 	height int64,
-	txs []types.Tx,
+	txs types.Txs,
 	lastCommit *types.Commit,
 	evidence []types.Evidence,
 	proposerAddress []byte,
 ) *types.Block {
-
 	// Build base block with block data.
 	block := types.MakeBlock(height, txs, lastCommit, evidence)
 

@@ -164,7 +164,7 @@ var (
 	EventQueryVote                = QueryForEvent(EventVote)
 )
 
-func EventQueryTxFor(tx Tx) cmtpubsub.Query {
+func EventQueryTxFor(tx TxI) cmtpubsub.Query {
 	return cmtquery.MustCompile(fmt.Sprintf("%s='%s' AND %s='%X'", EventTypeKey, EventTx, TxHashKey, tx.Hash()))
 }
 

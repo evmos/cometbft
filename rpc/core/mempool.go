@@ -20,7 +20,7 @@ var ErrEndpointClosedCatchingUp = errors.New("endpoint is closed while node is c
 // BroadcastTxAsync returns right away, with no response. Does not wait for
 // CheckTx nor transaction results.
 // More: https://docs.cometbft.com/main/rpc/#/Tx/broadcast_tx_async
-func (env *Environment) BroadcastTxAsync(_ *rpctypes.Context, tx types.Tx) (*ctypes.ResultBroadcastTx, error) {
+func (env *Environment) BroadcastTxAsync(_ *rpctypes.Context, tx types.TxI) (*ctypes.ResultBroadcastTx, error) {
 	if env.MempoolReactor.WaitSync() {
 		return nil, ErrEndpointClosedCatchingUp
 	}
@@ -34,7 +34,7 @@ func (env *Environment) BroadcastTxAsync(_ *rpctypes.Context, tx types.Tx) (*cty
 // BroadcastTxSync returns with the response from CheckTx. Does not wait for
 // the transaction result.
 // More: https://docs.cometbft.com/main/rpc/#/Tx/broadcast_tx_sync
-func (env *Environment) BroadcastTxSync(ctx *rpctypes.Context, tx types.Tx) (*ctypes.ResultBroadcastTx, error) {
+func (env *Environment) BroadcastTxSync(ctx *rpctypes.Context, tx types.TxI) (*ctypes.ResultBroadcastTx, error) {
 	if env.MempoolReactor.WaitSync() {
 		return nil, ErrEndpointClosedCatchingUp
 	}
@@ -66,7 +66,7 @@ func (env *Environment) BroadcastTxSync(ctx *rpctypes.Context, tx types.Tx) (*ct
 
 // BroadcastTxCommit returns with the responses from CheckTx and ExecTxResult.
 // More: https://docs.cometbft.com/main/rpc/#/Tx/broadcast_tx_commit
-func (env *Environment) BroadcastTxCommit(ctx *rpctypes.Context, tx types.Tx) (*ctypes.ResultBroadcastTxCommit, error) {
+func (env *Environment) BroadcastTxCommit(ctx *rpctypes.Context, tx types.TxI) (*ctypes.ResultBroadcastTxCommit, error) {
 	if env.MempoolReactor.WaitSync() {
 		return nil, ErrEndpointClosedCatchingUp
 	}
@@ -185,8 +185,8 @@ func (env *Environment) NumUnconfirmedTxs(*rpctypes.Context) (*ctypes.ResultUnco
 // CheckTx checks the transaction without executing it. The transaction won't
 // be added to the mempool either.
 // More: https://docs.cometbft.com/main/rpc/#/Tx/check_tx
-func (env *Environment) CheckTx(_ *rpctypes.Context, tx types.Tx) (*ctypes.ResultCheckTx, error) {
-	res, err := env.ProxyAppMempool.CheckTx(context.TODO(), &abci.RequestCheckTx{Tx: tx})
+func (env *Environment) CheckTx(_ *rpctypes.Context, tx types.TxI) (*ctypes.ResultCheckTx, error) {
+	res, err := env.ProxyAppMempool.CheckTx(context.TODO(), &abci.RequestCheckTx{Tx: tx.Bytes()})
 	if err != nil {
 		return nil, err
 	}

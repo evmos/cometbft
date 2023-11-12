@@ -63,8 +63,8 @@ type ResultBlockResults struct {
 // NewResultCommit is a helper to initialize the ResultCommit with
 // the embedded struct
 func NewResultCommit(header *types.Header, commit *types.Commit,
-	canonical bool) *ResultCommit {
-
+	canonical bool,
+) *ResultCommit {
 	return &ResultCommit{
 		SignedHeader: types.SignedHeader{
 			Header: header,
@@ -200,7 +200,7 @@ type ResultTx struct {
 	Height   int64             `json:"height"`
 	Index    uint32            `json:"index"`
 	TxResult abci.ExecTxResult `json:"tx_result"`
-	Tx       types.Tx          `json:"tx"`
+	Tx       []byte            `json:"tx"`
 	Proof    types.TxProof     `json:"proof,omitempty"`
 }
 
@@ -218,10 +218,10 @@ type ResultBlockSearch struct {
 
 // List of mempool txs
 type ResultUnconfirmedTxs struct {
-	Count      int        `json:"n_txs"`
-	Total      int        `json:"total"`
-	TotalBytes int64      `json:"total_bytes"`
-	Txs        []types.Tx `json:"txs"`
+	Count      int       `json:"n_txs"`
+	Total      int       `json:"total"`
+	TotalBytes int64     `json:"total_bytes"`
+	Txs        types.Txs `json:"txs"`
 }
 
 // Info abci msg

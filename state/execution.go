@@ -45,6 +45,8 @@ type BlockExecutor struct {
 	logger log.Logger
 
 	metrics *Metrics
+
+	txDecoder types.TxDecoderFn
 }
 
 type BlockExecutorOption func(executor *BlockExecutor)
@@ -70,6 +72,7 @@ func NewBlockExecutor(
 	mempool mempool.Mempool,
 	evpool EvidencePool,
 	blockStore BlockStore,
+	txDecoder types.TxDecoderFn,
 	options ...BlockExecutorOption,
 ) *BlockExecutor {
 	res := &BlockExecutor{
@@ -81,6 +84,7 @@ func NewBlockExecutor(
 		logger:     logger,
 		metrics:    NopMetrics(),
 		blockStore: blockStore,
+		txDecoder:  txDecoder,
 	}
 
 	for _, option := range options {
@@ -158,7 +162,7 @@ func (blockExec *BlockExecutor) CreateProposalBlock(
 		return nil, err
 	}
 
-	txl := types.ToTxs(rpp.Txs)
+	txl := types.ToTxs(rpp.Txs, blockExec.txDecoder)
 	if err := txl.Validate(maxDataBytes); err != nil {
 		return nil, err
 	}
@@ -701,7 +705,7 @@ func fireEvents(
 		if err := eventBus.PublishEventTx(types.EventDataTx{TxResult: abci.TxResult{
 			Height: block.Height,
 			Index:  uint32(i),
-			Tx:     tx,
+			Tx:     tx.Bytes(),
 			Result: *(abciResponse.TxResults[i]),
 		}}); err != nil {
 			logger.Error("failed publishing event TX", "err", err)

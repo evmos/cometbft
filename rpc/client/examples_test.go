@@ -10,6 +10,7 @@ import (
 	rpchttp "github.com/cometbft/cometbft/rpc/client/http"
 	ctypes "github.com/cometbft/cometbft/rpc/core/types"
 	rpctest "github.com/cometbft/cometbft/rpc/test"
+	"github.com/cometbft/cometbft/types"
 )
 
 func ExampleHTTP_simple() {
@@ -28,7 +29,8 @@ func ExampleHTTP_simple() {
 	// Create a transaction
 	k := []byte("name")
 	v := []byte("satoshi")
-	tx := append(k, append([]byte("="), v...)...)
+	txBz := append(k, append([]byte("="), v...)...)
+	tx := types.Tx(txBz)
 
 	// Broadcast the transaction and wait for it to commit (rather use
 	// c.BroadcastTxSync though in production).
@@ -94,7 +96,8 @@ func ExampleHTTP_batching() {
 	batch := c.NewBatch()
 
 	// Queue up our transactions
-	for _, tx := range txs {
+	for _, txBz := range txs {
+		tx := types.Tx(txBz)
 		// Broadcast the transaction and wait for it to commit (rather use
 		// c.BroadcastTxSync though in production).
 		if _, err := batch.BroadcastTxCommit(context.Background(), tx); err != nil {

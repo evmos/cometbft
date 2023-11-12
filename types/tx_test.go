@@ -64,7 +64,7 @@ func TestValidTxProof(t *testing.T) {
 		root := txs.Hash()
 		// make sure valid proof for every tx
 		for i := range txs {
-			tx := []byte(txs[i])
+			tx := txs[i].Bytes()
 			proof := txs.Proof(i)
 			assert.EqualValues(t, i, proof.Proof.Index, "%d: %d", h, i)
 			assert.EqualValues(t, len(txs), proof.Proof.Total, "%d: %d", h, i)
@@ -125,7 +125,6 @@ func testTxProofUnchangable(t *testing.T) {
 
 // This makes sure that the proof doesn't deserialize into something valid.
 func assertBadProof(t *testing.T, root []byte, bad []byte, good TxProof) {
-
 	var (
 		proof   TxProof
 		pbProof cmtproto.TxProof

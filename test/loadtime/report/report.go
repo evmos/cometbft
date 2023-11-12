@@ -137,7 +137,7 @@ func GenerateFromBlockStore(s BlockStore) (*Reports, error) {
 		err                     error
 	}
 	type txData struct {
-		tx types.Tx
+		tx types.TxI
 		bt time.Time
 	}
 	reports := &Reports{
@@ -160,7 +160,7 @@ func GenerateFromBlockStore(s BlockStore) (*Reports, error) {
 		go func() {
 			defer wg.Done()
 			for b := range txc {
-				p, err := payload.FromBytes(b.tx)
+				p, err := payload.FromBytes(b.tx.Bytes())
 				if err != nil {
 					pdc <- payloadData{err: err}
 					continue

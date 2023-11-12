@@ -86,15 +86,15 @@ func (c *Local) ABCIQueryWithOptions(
 	return c.env.ABCIQuery(c.ctx, path, data, opts.Height, opts.Prove)
 }
 
-func (c *Local) BroadcastTxCommit(_ context.Context, tx types.Tx) (*ctypes.ResultBroadcastTxCommit, error) {
+func (c *Local) BroadcastTxCommit(_ context.Context, tx types.TxI) (*ctypes.ResultBroadcastTxCommit, error) {
 	return c.env.BroadcastTxCommit(c.ctx, tx)
 }
 
-func (c *Local) BroadcastTxAsync(_ context.Context, tx types.Tx) (*ctypes.ResultBroadcastTx, error) {
+func (c *Local) BroadcastTxAsync(_ context.Context, tx types.TxI) (*ctypes.ResultBroadcastTx, error) {
 	return c.env.BroadcastTxAsync(c.ctx, tx)
 }
 
-func (c *Local) BroadcastTxSync(_ context.Context, tx types.Tx) (*ctypes.ResultBroadcastTx, error) {
+func (c *Local) BroadcastTxSync(_ context.Context, tx types.TxI) (*ctypes.ResultBroadcastTx, error) {
 	return c.env.BroadcastTxSync(c.ctx, tx)
 }
 
@@ -106,7 +106,7 @@ func (c *Local) NumUnconfirmedTxs(context.Context) (*ctypes.ResultUnconfirmedTxs
 	return c.env.NumUnconfirmedTxs(c.ctx)
 }
 
-func (c *Local) CheckTx(_ context.Context, tx types.Tx) (*ctypes.ResultCheckTx, error) {
+func (c *Local) CheckTx(_ context.Context, tx types.TxI) (*ctypes.ResultCheckTx, error) {
 	return c.env.CheckTx(c.ctx, tx)
 }
 

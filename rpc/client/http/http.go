@@ -249,7 +249,7 @@ func (c *baseRPCClient) ABCIQueryWithOptions(
 
 func (c *baseRPCClient) BroadcastTxCommit(
 	ctx context.Context,
-	tx types.Tx,
+	tx types.TxI,
 ) (*ctypes.ResultBroadcastTxCommit, error) {
 	result := new(ctypes.ResultBroadcastTxCommit)
 	_, err := c.caller.Call(ctx, "broadcast_tx_commit", map[string]interface{}{"tx": tx}, result)
@@ -261,14 +261,14 @@ func (c *baseRPCClient) BroadcastTxCommit(
 
 func (c *baseRPCClient) BroadcastTxAsync(
 	ctx context.Context,
-	tx types.Tx,
+	tx types.TxI,
 ) (*ctypes.ResultBroadcastTx, error) {
 	return c.broadcastTX(ctx, "broadcast_tx_async", tx)
 }
 
 func (c *baseRPCClient) BroadcastTxSync(
 	ctx context.Context,
-	tx types.Tx,
+	tx types.TxI,
 ) (*ctypes.ResultBroadcastTx, error) {
 	return c.broadcastTX(ctx, "broadcast_tx_sync", tx)
 }
@@ -276,7 +276,7 @@ func (c *baseRPCClient) BroadcastTxSync(
 func (c *baseRPCClient) broadcastTX(
 	ctx context.Context,
 	route string,
-	tx types.Tx,
+	tx types.TxI,
 ) (*ctypes.ResultBroadcastTx, error) {
 	result := new(ctypes.ResultBroadcastTx)
 	_, err := c.caller.Call(ctx, route, map[string]interface{}{"tx": tx}, result)
@@ -311,7 +311,7 @@ func (c *baseRPCClient) NumUnconfirmedTxs(ctx context.Context) (*ctypes.ResultUn
 	return result, nil
 }
 
-func (c *baseRPCClient) CheckTx(ctx context.Context, tx types.Tx) (*ctypes.ResultCheckTx, error) {
+func (c *baseRPCClient) CheckTx(ctx context.Context, tx types.TxI) (*ctypes.ResultCheckTx, error) {
 	result := new(ctypes.ResultCheckTx)
 	_, err := c.caller.Call(ctx, "check_tx", map[string]interface{}{"tx": tx}, result)
 	if err != nil {

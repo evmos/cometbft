@@ -269,6 +269,7 @@ func NewNode(ctx context.Context,
 	dbProvider cfg.DBProvider,
 	metricsProvider MetricsProvider,
 	logger log.Logger,
+	txDecoder types.TxDecoderFn,
 	options ...Option,
 ) (*Node, error) {
 	blockStore, stateDB, err := initDBs(config, dbProvider)
@@ -366,7 +367,7 @@ func NewNode(ctx context.Context,
 	logNodeStartupInfo(state, pubKey, logger, consensusLogger)
 
 	// Make MempoolReactor
-	mempool, mempoolReactor := createMempoolAndMempoolReactor(config, proxyApp, state, waitSync, memplMetrics, logger)
+	mempool, mempoolReactor := createMempoolAndMempoolReactor(config, proxyApp, state, waitSync, memplMetrics, logger, txDecoder)
 
 	// Make Evidence Reactor
 	evidenceReactor, evidencePool, err := createEvidenceReactor(config, dbProvider, stateStore, blockStore, logger)
@@ -395,6 +396,7 @@ func NewNode(ctx context.Context,
 		mempool,
 		evidencePool,
 		blockStore,
+		txDecoder,
 		sm.BlockExecutorWithPruner(pruner),
 		sm.BlockExecutorWithMetrics(smMetrics),
 	)

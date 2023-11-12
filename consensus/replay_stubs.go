@@ -21,7 +21,7 @@ func (emptyMempool) Lock()            {}
 func (emptyMempool) Unlock()          {}
 func (emptyMempool) Size() int        { return 0 }
 func (emptyMempool) SizeBytes() int64 { return 0 }
-func (emptyMempool) CheckTx(types.Tx) (*abcicli.ReqRes, error) {
+func (emptyMempool) CheckTx(types.TxI) (*abcicli.ReqRes, error) {
 	return nil, nil
 }
 

@@ -65,7 +65,7 @@ func TestApplyBlock(t *testing.T) {
 		mock.Anything,
 		mock.Anything).Return(nil)
 	blockExec := sm.NewBlockExecutor(stateStore, log.TestingLogger(), proxyApp.Consensus(),
-		mp, sm.EmptyEvidencePool{}, blockStore)
+		mp, sm.EmptyEvidencePool{}, blockStore, types.DefaultTxDecoder)
 
 	block := makeBlock(state, 1, new(types.Commit))
 	bps, err := block.MakePartSet(testPartSize)
@@ -130,7 +130,7 @@ func TestFinalizeBlockDecidedLastCommit(t *testing.T) {
 			eventBus := types.NewEventBus()
 			require.NoError(t, eventBus.Start())
 
-			blockExec := sm.NewBlockExecutor(stateStore, log.NewNopLogger(), proxyApp.Consensus(), mp, evpool, blockStore)
+			blockExec := sm.NewBlockExecutor(stateStore, log.NewNopLogger(), proxyApp.Consensus(), mp, evpool, blockStore, types.DefaultTxDecoder)
 			state, _, lastCommit, err := makeAndCommitGoodBlock(state, 1, new(types.Commit), state.NextValidators.Validators[0].Address, blockExec, privVals, nil)
 			require.NoError(t, err)
 
@@ -345,7 +345,7 @@ func TestFinalizeBlockMisbehavior(t *testing.T) {
 	blockStore := store.NewBlockStore(dbm.NewMemDB())
 
 	blockExec := sm.NewBlockExecutor(stateStore, log.TestingLogger(), proxyApp.Consensus(),
-		mp, evpool, blockStore)
+		mp, evpool, blockStore, types.DefaultTxDecoder)
 
 	block := makeBlock(state, 1, new(types.Commit))
 	block.Evidence = types.EvidenceData{Evidence: ev}
@@ -392,6 +392,7 @@ func TestProcessProposal(t *testing.T) {
 		new(mpmocks.Mempool),
 		sm.EmptyEvidencePool{},
 		blockStore,
+		types.DefaultTxDecoder,
 	)
 
 	block0 := makeBlock(state, height-1, new(types.Commit))
@@ -609,6 +610,7 @@ func TestFinalizeBlockValidatorUpdates(t *testing.T) {
 		mp,
 		sm.EmptyEvidencePool{},
 		blockStore,
+		types.DefaultTxDecoder,
 	)
 
 	eventBus := types.NewEventBus()
@@ -685,6 +687,7 @@ func TestFinalizeBlockValidatorUpdatesResultingInEmptySet(t *testing.T) {
 		new(mpmocks.Mempool),
 		sm.EmptyEvidencePool{},
 		blockStore,
+		types.DefaultTxDecoder,
 	)
 
 	block := makeBlock(state, 1, new(types.Commit))
@@ -741,6 +744,7 @@ func TestEmptyPrepareProposal(t *testing.T) {
 		mp,
 		sm.EmptyEvidencePool{},
 		blockStore,
+		types.DefaultTxDecoder,
 	)
 	pa, _ := state.Validators.GetByIndex(0)
 	commit, _, err := makeValidCommit(height, types.BlockID{}, state.Validators, privVals)
@@ -786,6 +790,7 @@ func TestPrepareProposalTxsAllIncluded(t *testing.T) {
 		mp,
 		evpool,
 		blockStore,
+		types.DefaultTxDecoder,
 	)
 	pa, _ := state.Validators.GetByIndex(0)
 	commit, _, err := makeValidCommit(height, types.BlockID{}, state.Validators, privVals)
@@ -841,6 +846,7 @@ func TestPrepareProposalReorderTxs(t *testing.T) {
 		mp,
 		evpool,
 		blockStore,
+		types.DefaultTxDecoder,
 	)
 	pa, _ := state.Validators.GetByIndex(0)
 	commit, _, err := makeValidCommit(height, types.BlockID{}, state.Validators, privVals)
@@ -897,6 +903,7 @@ func TestPrepareProposalErrorOnTooManyTxs(t *testing.T) {
 		mp,
 		evpool,
 		blockStore,
+		types.DefaultTxDecoder,
 	)
 	pa, _ := state.Validators.GetByIndex(0)
 	commit, _, err := makeValidCommit(height, types.BlockID{}, state.Validators, privVals)
@@ -951,6 +958,7 @@ func TestPrepareProposalErrorOnPrepareProposalError(t *testing.T) {
 		mp,
 		evpool,
 		blockStore,
+		types.DefaultTxDecoder,
 	)
 	pa, _ := state.Validators.GetByIndex(0)
 	commit, _, err := makeValidCommit(height, types.BlockID{}, state.Validators, privVals)
@@ -1040,6 +1048,7 @@ func TestCreateProposalAbsentVoteExtensions(t *testing.T) {
 				mp,
 				sm.EmptyEvidencePool{},
 				blockStore,
+				types.DefaultTxDecoder,
 			)
 			block := makeBlock(state, testCase.height, new(types.Commit))
 

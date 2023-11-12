@@ -25,7 +25,7 @@ const (
 type Mempool interface {
 	// CheckTx executes a new transaction against the application to determine
 	// its validity and whether it should be added to the mempool.
-	CheckTx(tx types.Tx) (*abcicli.ReqRes, error)
+	CheckTx(tx types.TxI) (*abcicli.ReqRes, error)
 
 	// RemoveTxByKey removes a transaction, identified by its key,
 	// from the mempool.
@@ -100,18 +100,18 @@ type Mempool interface {
 // PreCheckFunc is an optional filter executed before CheckTx and rejects
 // transaction if false is returned. An example would be to ensure that a
 // transaction doesn't exceeded the block size.
-type PreCheckFunc func(types.Tx) error
+type PreCheckFunc func(types.TxI) error
 
 // PostCheckFunc is an optional filter executed after CheckTx and rejects
 // transaction if false is returned. An example would be to ensure a
 // transaction doesn't require more gas than available for the block.
-type PostCheckFunc func(types.Tx, *abci.ResponseCheckTx) error
+type PostCheckFunc func(types.TxI, *abci.ResponseCheckTx) error
 
 // PreCheckMaxBytes checks that the size of the transaction is smaller or equal
 // to the expected maxBytes.
 func PreCheckMaxBytes(maxBytes int64) PreCheckFunc {
-	return func(tx types.Tx) error {
-		txSize := types.ComputeProtoSizeForTxs([]types.Tx{tx})
+	return func(tx types.TxI) error {
+		txSize := types.ComputeProtoSizeForTxs(types.Txs{tx})
 
 		if txSize > maxBytes {
 			return fmt.Errorf("tx size is too big: %d, max: %d", txSize, maxBytes)
@@ -124,7 +124,7 @@ func PreCheckMaxBytes(maxBytes int64) PreCheckFunc {
 // PostCheckMaxGas checks that the wanted gas is smaller or equal to the passed
 // maxGas. Returns nil if maxGas is -1.
 func PostCheckMaxGas(maxGas int64) PostCheckFunc {
-	return func(tx types.Tx, res *abci.ResponseCheckTx) error {
+	return func(tx types.TxI, res *abci.ResponseCheckTx) error {
 		if maxGas == -1 {
 			return nil
 		}

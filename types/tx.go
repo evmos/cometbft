@@ -25,6 +25,30 @@ type (
 	TxKey [TxKeySize]byte
 )
 
+type TxDecoderFn func(bz []byte) (TxI, error)
+
+func DefaultTxDecoder(bz []byte) (TxI, error) {
+	return Tx(bz), nil
+}
+
+type TxI interface {
+	Hash() []byte
+	Bytes() []byte
+	Key() TxKey
+	String() string
+}
+
+// Bytes returns the raw transaction bytes.
+func (tx Tx) Bytes() []byte {
+	return tx
+}
+
+// Bytes returns the raw transaction bytes.
+func (tx *Tx) Unmarshal(bz []byte) error {
+	*tx = bz
+	return nil
+}
+
 // Hash computes the TMHASH hash of the wire encoded transaction.
 func (tx Tx) Hash() []byte {
 	return tmhash.Sum(tx)
@@ -40,7 +64,7 @@ func (tx Tx) String() string {
 }
 
 // Txs is a slice of Tx.
-type Txs []Tx
+type Txs []TxI
 
 // Hash returns the Merkle root hash of the transaction hashes.
 // i.e. the leaves of the tree are the hashes of the txs.
@@ -50,9 +74,9 @@ func (txs Txs) Hash() []byte {
 }
 
 // Index returns the index of this transaction in the list, or -1 if not found
-func (txs Txs) Index(tx Tx) int {
+func (txs Txs) Index(tx TxI) int {
 	for i := range txs {
-		if bytes.Equal(txs[i], tx) {
+		if bytes.Equal(txs[i].Bytes(), tx.Bytes()) {
 			return i
 		}
 	}
@@ -75,7 +99,7 @@ func (txs Txs) Proof(i int) TxProof {
 
 	return TxProof{
 		RootHash: root,
-		Data:     txs[i],
+		Data:     txs[i].Bytes(),
 		Proof:    *proofs[i],
 	}
 }
@@ -93,12 +117,17 @@ func (txs Txs) hashList() [][]byte {
 func (txs Txs) Len() int      { return len(txs) }
 func (txs Txs) Swap(i, j int) { txs[i], txs[j] = txs[j], txs[i] }
 func (txs Txs) Less(i, j int) bool {
-	return bytes.Compare(txs[i], txs[j]) == -1
+	return bytes.Compare(txs[i].Bytes(), txs[j].Bytes()) == -1
 }
 
-func ToTxs(txl [][]byte) Txs {
-	txs := make([]Tx, 0, len(txl))
-	for _, tx := range txl {
+func ToTxs(txl [][]byte, txDecoder TxDecoderFn) Txs {
+	txs := make([]TxI, 0, len(txl))
+	for _, txBz := range txl {
+		tx, err := txDecoder(txBz)
+		if err != nil {
+			panic(err)
+		}
+
 		txs = append(txs, tx)
 	}
 	return txs
@@ -107,7 +136,7 @@ func ToTxs(txl [][]byte) Txs {
 func (txs Txs) Validate(maxSizeBytes int64) error {
 	var size int64
 	for _, tx := range txs {
-		size += int64(len(tx))
+		size += int64(len(tx.Bytes()))
 		if size > maxSizeBytes {
 			return fmt.Errorf("transaction data size exceeds maximum %d", maxSizeBytes)
 		}
@@ -119,7 +148,7 @@ func (txs Txs) Validate(maxSizeBytes int64) error {
 func (txs Txs) ToSliceOfBytes() [][]byte {
 	txBzs := make([][]byte, len(txs))
 	for i := 0; i < len(txs); i++ {
-		txBzs[i] = txs[i]
+		txBzs[i] = txs[i].Bytes()
 	}
 	return txBzs
 }
@@ -156,19 +185,18 @@ func (tp TxProof) Validate(dataHash []byte) error {
 }
 
 func (tp TxProof) ToProto() cmtproto.TxProof {
-
 	pbProof := tp.Proof.ToProto()
 
 	pbtp := cmtproto.TxProof{
 		RootHash: tp.RootHash,
-		Data:     tp.Data,
+		Data:     tp.Data.Bytes(),
 		Proof:    pbProof,
 	}
 
 	return pbtp
 }
-func TxProofFromProto(pb cmtproto.TxProof) (TxProof, error) {
 
+func TxProofFromProto(pb cmtproto.TxProof) (TxProof, error) {
 	pbProof, err := merkle.ProofFromProto(pb.Proof)
 	if err != nil {
 		return TxProof{}, err
@@ -185,7 +213,7 @@ func TxProofFromProto(pb cmtproto.TxProof) (TxProof, error) {
 
 // ComputeProtoSizeForTxs wraps the transactions in cmtproto.Data{} and calculates the size.
 // https://developers.google.com/protocol-buffers/docs/encoding
-func ComputeProtoSizeForTxs(txs []Tx) int64 {
+func ComputeProtoSizeForTxs(txs []TxI) int64 {
 	data := Data{Txs: txs}
 	pdData := data.ToProto()
 	return int64(pdData.Size())

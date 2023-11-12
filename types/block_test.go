@@ -34,7 +34,7 @@ func TestMain(m *testing.M) {
 }
 
 func TestBlockAddEvidence(t *testing.T) {
-	txs := []Tx{Tx("foo"), Tx("bar")}
+	txs := Txs{Tx("foo"), Tx("bar")}
 	lastID := makeBlockIDRandom()
 	h := int64(3)
 
@@ -55,7 +55,7 @@ func TestBlockAddEvidence(t *testing.T) {
 func TestBlockValidateBasic(t *testing.T) {
 	require.Error(t, (*Block)(nil).ValidateBasic())
 
-	txs := []Tx{Tx("foo"), Tx("bar")}
+	txs := Txs{Tx("foo"), Tx("bar")}
 	lastID := makeBlockIDRandom()
 	h := int64(3)
 
@@ -110,7 +110,7 @@ func TestBlockValidateBasic(t *testing.T) {
 
 func TestBlockHash(t *testing.T) {
 	assert.Nil(t, (*Block)(nil).Hash())
-	assert.Nil(t, MakeBlock(int64(3), []Tx{Tx("Hello World")}, nil, nil).Hash())
+	assert.Nil(t, MakeBlock(int64(3), Txs{Tx("Hello World")}, nil, nil).Hash())
 }
 
 func TestBlockMakePartSet(t *testing.T) {
@@ -118,7 +118,7 @@ func TestBlockMakePartSet(t *testing.T) {
 	assert.Error(t, err)
 	assert.Nil(t, bps)
 
-	partSet, err := MakeBlock(int64(3), []Tx{Tx("Hello World")}, nil, nil).MakePartSet(1024)
+	partSet, err := MakeBlock(int64(3), Txs{Tx("Hello World")}, nil, nil).MakePartSet(1024)
 	require.NoError(t, err)
 	assert.NotNil(t, partSet)
 	assert.EqualValues(t, 1, partSet.Total())
@@ -140,7 +140,7 @@ func TestBlockMakePartSetWithEvidence(t *testing.T) {
 	require.NoError(t, err)
 	evList := []Evidence{ev}
 
-	partSet, err := MakeBlock(h, []Tx{Tx("Hello World")}, extCommit.ToCommit(), evList).MakePartSet(512)
+	partSet, err := MakeBlock(h, Txs{Tx("Hello World")}, extCommit.ToCommit(), evList).MakePartSet(512)
 	require.NoError(t, err)
 
 	assert.NotNil(t, partSet)
@@ -160,7 +160,7 @@ func TestBlockHashesTo(t *testing.T) {
 	require.NoError(t, err)
 	evList := []Evidence{ev}
 
-	block := MakeBlock(h, []Tx{Tx("Hello World")}, extCommit.ToCommit(), evList)
+	block := MakeBlock(h, Txs{Tx("Hello World")}, extCommit.ToCommit(), evList)
 	block.ValidatorsHash = valSet.Hash()
 	assert.False(t, block.HashesTo([]byte{}))
 	assert.False(t, block.HashesTo([]byte("something else")))
@@ -168,7 +168,7 @@ func TestBlockHashesTo(t *testing.T) {
 }
 
 func TestBlockSize(t *testing.T) {
-	size := MakeBlock(int64(3), []Tx{Tx("Hello World")}, nil, nil).Size()
+	size := MakeBlock(int64(3), Txs{Tx("Hello World")}, nil, nil).Size()
 	if size <= 0 {
 		t.Fatal("Size of the block is zero or negative")
 	}
@@ -179,7 +179,7 @@ func TestBlockString(t *testing.T) {
 	assert.Equal(t, "nil-Block", (*Block)(nil).StringIndented(""))
 	assert.Equal(t, "nil-Block", (*Block)(nil).StringShort())
 
-	block := MakeBlock(int64(3), []Tx{Tx("Hello World")}, nil, nil)
+	block := MakeBlock(int64(3), Txs{Tx("Hello World")}, nil, nil)
 	assert.NotEqual(t, "nil-Block", block.String())
 	assert.NotEqual(t, "nil-Block", block.StringIndented(""))
 	assert.NotEqual(t, "nil-Block", block.StringShort())
@@ -214,9 +214,11 @@ func makeBlockID(hash []byte, partSetSize uint32, partSetHash []byte) BlockID {
 var nilBytes []byte
 
 // This follows RFC-6962, i.e. `echo -n ” | sha256sum`
-var emptyBytes = []byte{0xe3, 0xb0, 0xc4, 0x42, 0x98, 0xfc, 0x1c, 0x14, 0x9a, 0xfb, 0xf4, 0xc8,
+var emptyBytes = []byte{
+	0xe3, 0xb0, 0xc4, 0x42, 0x98, 0xfc, 0x1c, 0x14, 0x9a, 0xfb, 0xf4, 0xc8,
 	0x99, 0x6f, 0xb9, 0x24, 0x27, 0xae, 0x41, 0xe4, 0x64, 0x9b, 0x93, 0x4c, 0xa4, 0x95, 0x99, 0x1b,
-	0x78, 0x52, 0xb8, 0x55}
+	0x78, 0x52, 0xb8, 0x55,
+}
 
 func TestNilHeaderHashDoesntCrash(t *testing.T) {
 	assert.Equal(t, nilBytes, []byte((*Header)(nil).Hash()))
@@ -312,7 +314,6 @@ func TestMaxCommitBytes(t *testing.T) {
 	pb = commit.ToProto()
 
 	assert.EqualValues(t, MaxCommitBytes(MaxVotesCount), int64(pb.Size()))
-
 }
 
 func TestHeaderHash(t *testing.T) {
@@ -534,7 +535,6 @@ func TestVoteSetToExtendedCommit(t *testing.T) {
 			includeExtension: true,
 		},
 	} {
-
 		t.Run(testCase.name, func(t *testing.T) {
 			blockID := makeBlockIDRandom()
 
@@ -759,10 +759,10 @@ func TestBlockIDValidateBasic(t *testing.T) {
 func TestBlockProtoBuf(t *testing.T) {
 	h := cmtrand.Int63()
 	c1 := randCommit(time.Now())
-	b1 := MakeBlock(h, []Tx{Tx([]byte{1})}, &Commit{Signatures: []CommitSig{}}, []Evidence{})
+	b1 := MakeBlock(h, Txs{Tx([]byte{1})}, &Commit{Signatures: []CommitSig{}}, []Evidence{})
 	b1.ProposerAddress = cmtrand.Bytes(crypto.AddressSize)
 
-	b2 := MakeBlock(h, []Tx{Tx([]byte{1})}, c1, []Evidence{})
+	b2 := MakeBlock(h, Txs{Tx([]byte{1})}, c1, []Evidence{})
 	b2.ProposerAddress = cmtrand.Bytes(crypto.AddressSize)
 	evidenceTime := time.Date(2019, 1, 1, 0, 0, 0, 0, time.UTC)
 	evi, err := NewMockDuplicateVoteEvidence(h, evidenceTime, "block-test-chain")
@@ -770,7 +770,7 @@ func TestBlockProtoBuf(t *testing.T) {
 	b2.Evidence = EvidenceData{Evidence: EvidenceList{evi}}
 	b2.EvidenceHash = b2.Evidence.Hash()
 
-	b3 := MakeBlock(h, []Tx{}, c1, []Evidence{})
+	b3 := MakeBlock(h, Txs{}, c1, []Evidence{})
 	b3.ProposerAddress = cmtrand.Bytes(crypto.AddressSize)
 	testCases := []struct {
 		msg      string
@@ -914,7 +914,6 @@ func TestHeaderProto(t *testing.T) {
 			} else {
 				require.Error(t, err, tt.msg)
 			}
-
 		})
 	}
 }

@@ -11,6 +11,7 @@ import (
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cometbft/cometbft/internal/test"
 	"github.com/cometbft/cometbft/libs/log"
+	"github.com/cometbft/cometbft/types"
 
 	cfg "github.com/cometbft/cometbft/config"
 	cmtnet "github.com/cometbft/cometbft/libs/net"
@@ -160,7 +161,9 @@ func NewCometBFT(app abci.Application, opts *Options) *nm.Node {
 		nm.DefaultGenesisDocProviderFunc(config),
 		cfg.DefaultDBProvider,
 		nm.DefaultMetricsProvider(config.Instrumentation),
-		logger)
+		logger,
+		types.DefaultTxDecoder,
+	)
 	if err != nil {
 		panic(err)
 	}

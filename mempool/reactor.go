@@ -23,8 +23,9 @@ import (
 // peers you received it from.
 type Reactor struct {
 	p2p.BaseReactor
-	config  *cfg.MempoolConfig
-	mempool *CListMempool
+	config    *cfg.MempoolConfig
+	mempool   *CListMempool
+	txDecoder types.TxDecoderFn
 
 	waitSync   atomic.Bool
 	waitSyncCh chan struct{} // for signaling when to start receiving and sending txs
@@ -44,10 +45,11 @@ type Reactor struct {
 }
 
 // NewReactor returns a new Reactor with the given config and mempool.
-func NewReactor(config *cfg.MempoolConfig, mempool *CListMempool, waitSync bool) *Reactor {
+func NewReactor(config *cfg.MempoolConfig, mempool *CListMempool, txDecoder types.TxDecoderFn, waitSync bool) *Reactor {
 	memR := &Reactor{
 		config:    config,
 		mempool:   mempool,
+		txDecoder: txDecoder,
 		waitSync:  atomic.Bool{},
 		txSenders: make(map[types.TxKey]map[p2p.ID]bool),
 	}
@@ -156,7 +158,12 @@ func (memR *Reactor) Receive(e p2p.Envelope) {
 		}
 
 		for _, txBytes := range protoTxs {
-			tx := types.Tx(txBytes)
+			tx, err := memR.txDecoder(txBytes)
+			if err != nil {
+				memR.Logger.Error("error while decoding tx bytes", "src", e.Src, "error", err.Error())
+				return
+			}
+
 			reqRes, err := memR.mempool.CheckTx(tx)
 			if errors.Is(err, ErrTxInCache) {
 				memR.Logger.Debug("Tx already exists in cache", "tx", tx.String())
@@ -272,7 +279,7 @@ func (memR *Reactor) broadcastTxRoutine(peer p2p.Peer) {
 		if !memR.isSender(memTx.tx.Key(), peer.ID()) {
 			success := peer.Send(p2p.Envelope{
 				ChannelID: MempoolChannel,
-				Message:   &protomem.Txs{Txs: [][]byte{memTx.tx}},
+				Message:   &protomem.Txs{Txs: [][]byte{memTx.tx.Bytes()}},
 			})
 			if !success {
 				time.Sleep(PeerCatchupSleepIntervalMS * time.Millisecond)

@@ -5,6 +5,7 @@ import (
 	"github.com/cometbft/cometbft/config"
 	mempl "github.com/cometbft/cometbft/mempool"
 	"github.com/cometbft/cometbft/proxy"
+	"github.com/cometbft/cometbft/types"
 )
 
 var mempool mempl.Mempool
@@ -20,11 +21,11 @@ func init() {
 
 	cfg := config.DefaultMempoolConfig()
 	cfg.Broadcast = false
-	mempool = mempl.NewCListMempool(cfg, appConnMem, 0)
+	mempool = mempl.NewCListMempool(cfg, appConnMem, 0, types.DefaultTxDecoder)
 }
 
 func Fuzz(data []byte) int {
-	_, err := mempool.CheckTx(data)
+	_, err := mempool.CheckTx(types.Tx(data))
 	if err != nil {
 		return 0
 	}

@@ -13,8 +13,8 @@ import (
 )
 
 func MakeExtCommit(blockID BlockID, height int64, round int32,
-	voteSet *VoteSet, validators []PrivValidator, now time.Time, extEnabled bool) (*ExtendedCommit, error) {
-
+	voteSet *VoteSet, validators []PrivValidator, now time.Time, extEnabled bool,
+) (*ExtendedCommit, error) {
 	// all sign
 	for i := 0; i < len(validators); i++ {
 		pubKey, err := validators[i].GetPubKey()
@@ -107,7 +107,7 @@ func MakeVoteNoError(
 // MakeBlock returns a new block with an empty header, except what can be
 // computed from itself.
 // It populates the same set of fields validated by ValidateBasic.
-func MakeBlock(height int64, txs []Tx, lastCommit *Commit, evidence []Evidence) *Block {
+func MakeBlock(height int64, txs Txs, lastCommit *Commit, evidence []Evidence) *Block {
 	block := &Block{
 		Header: Header{
 			Version: cmtversion.Consensus{Block: version.BlockProtocol, App: 0},

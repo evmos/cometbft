@@ -165,7 +165,7 @@ func TestMempoolRmBadTx(t *testing.T) {
 		// Try to send the tx through the mempool.
 		// CheckTx should not err, but the app should return a bad abci code
 		// and the tx should get removed from the pool
-		invalidTx := []byte("invalidTx")
+		invalidTx := types.Tx([]byte("invalidTx"))
 		reqRes, err := assertMempool(cs.txNotifier).CheckTx(invalidTx)
 		if err != nil {
 			t.Errorf("error after CheckTx: %v", err)

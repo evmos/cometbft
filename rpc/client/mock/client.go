@@ -104,19 +104,19 @@ func (c Client) ABCIQueryWithOptions(
 	return c.env.ABCIQuery(&rpctypes.Context{}, path, data, opts.Height, opts.Prove)
 }
 
-func (c Client) BroadcastTxCommit(_ context.Context, tx types.Tx) (*ctypes.ResultBroadcastTxCommit, error) {
+func (c Client) BroadcastTxCommit(_ context.Context, tx types.TxI) (*ctypes.ResultBroadcastTxCommit, error) {
 	return c.env.BroadcastTxCommit(&rpctypes.Context{}, tx)
 }
 
-func (c Client) BroadcastTxAsync(_ context.Context, tx types.Tx) (*ctypes.ResultBroadcastTx, error) {
+func (c Client) BroadcastTxAsync(_ context.Context, tx types.TxI) (*ctypes.ResultBroadcastTx, error) {
 	return c.env.BroadcastTxAsync(&rpctypes.Context{}, tx)
 }
 
-func (c Client) BroadcastTxSync(_ context.Context, tx types.Tx) (*ctypes.ResultBroadcastTx, error) {
+func (c Client) BroadcastTxSync(_ context.Context, tx types.TxI) (*ctypes.ResultBroadcastTx, error) {
 	return c.env.BroadcastTxSync(&rpctypes.Context{}, tx)
 }
 
-func (c Client) CheckTx(_ context.Context, tx types.Tx) (*ctypes.ResultCheckTx, error) {
+func (c Client) CheckTx(_ context.Context, tx types.TxI) (*ctypes.ResultCheckTx, error) {
 	return c.env.CheckTx(&rpctypes.Context{}, tx)
 }
 

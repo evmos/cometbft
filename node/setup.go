@@ -79,7 +79,7 @@ func DefaultGenesisDocProviderFunc(config *cfg.Config) GenesisDocProvider {
 type Provider func(*cfg.Config, log.Logger) (*Node, error)
 
 // DefaultNewNode returns a CometBFT node with default settings for the
-// PrivValidator, ClientCreator, GenesisDoc, and DBProvider.
+// PrivValidator, ClientCreator, GenesisDoc, DBProvider and TxDecoder.
 // It implements NodeProvider.
 func DefaultNewNode(config *cfg.Config, logger log.Logger) (*Node, error) {
 	nodeKey, err := p2p.LoadOrGenNodeKey(config.NodeKeyFile())
@@ -87,7 +87,9 @@ func DefaultNewNode(config *cfg.Config, logger log.Logger) (*Node, error) {
 		return nil, fmt.Errorf("failed to load or gen node key %s: %w", config.NodeKeyFile(), err)
 	}
 
-	return NewNode(context.Background(), config,
+	return NewNode(
+		context.Background(),
+		config,
 		privval.LoadOrGenFilePV(config.PrivValidatorKeyFile(), config.PrivValidatorStateFile()),
 		nodeKey,
 		proxy.DefaultClientCreator(config.ProxyApp, config.ABCI, config.DBDir()),
@@ -95,6 +97,7 @@ func DefaultNewNode(config *cfg.Config, logger log.Logger) (*Node, error) {
 		cfg.DefaultDBProvider,
 		DefaultMetricsProvider(config.Instrumentation),
 		logger,
+		types.DefaultTxDecoder,
 	)
 }
 
@@ -247,12 +250,14 @@ func createMempoolAndMempoolReactor(
 	waitSync bool,
 	memplMetrics *mempl.Metrics,
 	logger log.Logger,
+	txDecoder types.TxDecoderFn,
 ) (mempl.Mempool, *mempl.Reactor) {
 	logger = logger.With("module", "mempool")
 	mp := mempl.NewCListMempool(
 		config.Mempool,
 		proxyApp.Mempool(),
 		state.LastBlockHeight,
+		txDecoder,
 		mempl.WithMetrics(memplMetrics),
 		mempl.WithPreCheck(sm.TxPreCheck(state)),
 		mempl.WithPostCheck(sm.TxPostCheck(state)),
@@ -263,6 +268,7 @@ func createMempoolAndMempoolReactor(
 	reactor := mempl.NewReactor(
 		config.Mempool,
 		mp,
+		txDecoder,
 		waitSync,
 	)
 	if config.Consensus.WaitForTxs() {
@@ -554,8 +560,10 @@ func startStateSync(
 
 //------------------------------------------------------------------------------
 
-var genesisDocKey = []byte("genesisDoc")
-var genesisDocHashKey = []byte("genesisDocHash")
+var (
+	genesisDocKey     = []byte("genesisDoc")
+	genesisDocHashKey = []byte("genesisDocHash")
+)
 
 // LoadStateFromDBOrGenesisDocProvider attempts to load the state from the
 // database, or creates one using the given genesisDocProvider. On success this also

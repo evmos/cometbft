@@ -213,7 +213,8 @@ func TestGenesisChunked(t *testing.T) {
 func TestABCIQuery(t *testing.T) {
 	for i, c := range GetClients() {
 		// write something
-		k, v, tx := MakeTxKV()
+		k, v, txBz := MakeTxKV()
+		tx := types.Tx(txBz)
 		bres, err := c.BroadcastTxCommit(context.Background(), tx)
 		require.Nil(t, err, "%d: %+v", i, err)
 		apph := bres.Height + 1 // this is where the tx will be applied to the state
@@ -246,7 +247,8 @@ func TestAppCalls(t *testing.T) {
 		require.Error(err) // no block yet
 
 		// write something
-		k, v, tx := MakeTxKV()
+		k, v, txBz := MakeTxKV()
+		tx := types.Tx(txBz)
 		bres, err := c.BroadcastTxCommit(context.Background(), tx)
 		require.NoError(err)
 		require.True(bres.TxResult.IsOK())
@@ -343,7 +345,8 @@ func TestBroadcastTxSync(t *testing.T) {
 	initMempoolSize := mempool.Size()
 
 	for i, c := range GetClients() {
-		_, _, tx := MakeTxKV()
+		_, _, txBz := MakeTxKV()
+		tx := types.Tx(txBz)
 		bres, err := c.BroadcastTxSync(context.Background(), tx)
 		require.Nil(err, "%d: %+v", i, err)
 		require.Equal(bres.Code, abci.CodeTypeOK) // FIXME
@@ -361,7 +364,8 @@ func TestBroadcastTxCommit(t *testing.T) {
 
 	mempool := node.Mempool()
 	for i, c := range GetClients() {
-		_, _, tx := MakeTxKV()
+		_, _, txBz := MakeTxKV()
+		tx := types.Tx(txBz)
 		bres, err := c.BroadcastTxCommit(context.Background(), tx)
 		require.Nil(err, "%d: %+v", i, err)
 		require.True(bres.CheckTx.IsOK())
@@ -372,7 +376,8 @@ func TestBroadcastTxCommit(t *testing.T) {
 }
 
 func TestUnconfirmedTxs(t *testing.T) {
-	_, _, tx := MakeTxKV()
+	_, _, txBz := MakeTxKV()
+	tx := types.Tx(txBz)
 
 	ch := make(chan *abci.ResponseCheckTx, 1)
 	mempool := node.Mempool()
@@ -403,7 +408,8 @@ func TestUnconfirmedTxs(t *testing.T) {
 }
 
 func TestNumUnconfirmedTxs(t *testing.T) {
-	_, _, tx := MakeTxKV()
+	_, _, txBz := MakeTxKV()
+	tx := types.Tx(txBz)
 
 	ch := make(chan *abci.ResponseCheckTx, 1)
 	mempool := node.Mempool()
@@ -437,7 +443,8 @@ func TestCheckTx(t *testing.T) {
 	mempool := node.Mempool()
 
 	for _, c := range GetClients() {
-		_, _, tx := MakeTxKV()
+		_, _, txBz := MakeTxKV()
+		tx := types.Tx(txBz)
 
 		res, err := c.CheckTx(context.Background(), tx)
 		require.NoError(t, err)
@@ -450,7 +457,8 @@ func TestCheckTx(t *testing.T) {
 func TestTx(t *testing.T) {
 	// first we broadcast a tx
 	c := getHTTPClient()
-	_, _, tx := MakeTxKV()
+	_, _, txBz := MakeTxKV()
+	tx := types.Tx(txBz)
 	bres, err := c.BroadcastTxCommit(context.Background(), tx)
 	require.Nil(t, err, "%+v", err)
 
@@ -505,7 +513,8 @@ func TestTxSearchWithTimeout(t *testing.T) {
 	// Get a client with a time-out of 10 secs.
 	timeoutClient := getHTTPClientWithTimeout(10)
 
-	_, _, tx := MakeTxKV()
+	_, _, txBz := MakeTxKV()
+	tx := types.Tx(txBz)
 	_, err := timeoutClient.BroadcastTxCommit(context.Background(), tx)
 	require.NoError(t, err)
 
@@ -522,7 +531,8 @@ func TestBlockSearch(t *testing.T) {
 
 	// first we broadcast a few txs
 	for i := 0; i < 10; i++ {
-		_, _, tx := MakeTxKV()
+		_, _, txBz := MakeTxKV()
+		tx := types.Tx(txBz)
 
 		_, err := c.BroadcastTxCommit(context.Background(), tx)
 		require.NoError(t, err)
@@ -545,7 +555,8 @@ func TestTxSearch(t *testing.T) {
 
 	// first we broadcast a few txs
 	for i := 0; i < 10; i++ {
-		_, _, tx := MakeTxKV()
+		_, _, txBz := MakeTxKV()
+		tx := types.Tx(txBz)
 		_, err := c.BroadcastTxCommit(context.Background(), tx)
 		require.NoError(t, err)
 	}
@@ -670,8 +681,11 @@ func TestBatchedJSONRPCCalls(t *testing.T) {
 }
 
 func testBatchedJSONRPCCalls(t *testing.T, c *rpchttp.HTTP) {
-	k1, v1, tx1 := MakeTxKV()
-	k2, v2, tx2 := MakeTxKV()
+	k1, v1, txBz1 := MakeTxKV()
+	k2, v2, txBz2 := MakeTxKV()
+
+	tx1 := types.Tx(txBz1)
+	tx2 := types.Tx(txBz2)
 
 	batch := c.NewBatch()
 	r1, err := batch.BroadcastTxCommit(context.Background(), tx1)
@@ -720,8 +734,11 @@ func testBatchedJSONRPCCalls(t *testing.T, c *rpchttp.HTTP) {
 
 func TestBatchedJSONRPCCallsCancellation(t *testing.T) {
 	c := getHTTPClient()
-	_, _, tx1 := MakeTxKV()
-	_, _, tx2 := MakeTxKV()
+	_, _, txBz1 := MakeTxKV()
+	_, _, txBz2 := MakeTxKV()
+
+	tx1 := types.Tx(txBz1)
+	tx2 := types.Tx(txBz2)
 
 	batch := c.NewBatch()
 	_, err := batch.BroadcastTxCommit(context.Background(), tx1)

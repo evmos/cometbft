@@ -29,6 +29,7 @@ import (
 	rpcserver "github.com/cometbft/cometbft/rpc/jsonrpc/server"
 	"github.com/cometbft/cometbft/test/e2e/app"
 	e2e "github.com/cometbft/cometbft/test/e2e/pkg"
+	"github.com/cometbft/cometbft/types"
 )
 
 var logger = log.NewTMLogger(log.NewSyncWriter(os.Stdout))
@@ -140,6 +141,7 @@ func startNode(cfg *Config) error {
 		config.DefaultDBProvider,
 		node.DefaultMetricsProvider(cmtcfg.Instrumentation),
 		nodeLogger,
+		types.DefaultTxDecoder,
 	)
 	if err != nil {
 		return err

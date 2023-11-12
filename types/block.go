@@ -1009,9 +1009,7 @@ func CommitFromProto(cp *cmtproto.Commit) (*Commit, error) {
 		return nil, errors.New("nil Commit")
 	}
 
-	var (
-		commit = new(Commit)
-	)
+	commit := new(Commit)
 
 	bi, err := BlockIDFromProto(&cp.BlockID)
 	if err != nil {
@@ -1277,7 +1275,6 @@ func ExtendedCommitFromProto(ecp *cmtproto.ExtendedCommit) (*ExtendedCommit, err
 
 // Data contains the set of transactions included in the block
 type Data struct {
-
 	// Txs that will be applied by state @ block.Height+1.
 	// NOTE: not all txs here are valid.  We're just agreeing on the order first.
 	// This means that block.AppHash does not include these txs.
@@ -1309,7 +1306,7 @@ func (data *Data) StringIndented(indent string) string {
 			txStrings[i] = fmt.Sprintf("... (%v total)", len(data.Txs))
 			break
 		}
-		txStrings[i] = fmt.Sprintf("%X (%d bytes)", tx.Hash(), len(tx))
+		txStrings[i] = fmt.Sprintf("%X (%d bytes)", tx.Hash(), len(tx.Bytes()))
 	}
 	return fmt.Sprintf(`Data{
 %s  %v
@@ -1325,7 +1322,7 @@ func (data *Data) ToProto() cmtproto.Data {
 	if len(data.Txs) > 0 {
 		txBzs := make([][]byte, len(data.Txs))
 		for i := range data.Txs {
-			txBzs[i] = data.Txs[i]
+			txBzs[i] = data.Txs[i].Bytes()
 		}
 		tp.Txs = txBzs
 	}

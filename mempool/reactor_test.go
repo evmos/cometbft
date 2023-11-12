@@ -109,7 +109,7 @@ func TestReactorConcurrency(t *testing.T) {
 
 			reactors[1].mempool.Lock()
 			defer reactors[1].mempool.Unlock()
-			err := reactors[1].mempool.Update(1, []types.Tx{}, make([]*abci.ExecTxResult, 0), nil, nil)
+			err := reactors[1].mempool.Update(1, types.Txs{}, make([]*abci.ExecTxResult, 0), nil, nil)
 			assert.NoError(t, err)
 		}()
 
@@ -178,7 +178,7 @@ func TestReactor_MaxTxBytes(t *testing.T) {
 	reqRes, err := reactors[0].mempool.CheckTx(tx1)
 	require.NoError(t, err)
 	require.False(t, reqRes.Response.GetCheckTx().IsErr())
-	waitForReactors(t, []types.Tx{tx1}, reactors, checkTxsInOrder)
+	waitForReactors(t, types.Txs{tx1}, reactors, checkTxsInOrder)
 
 	reactors[0].mempool.Flush()
 	reactors[1].mempool.Flush()
@@ -441,7 +441,7 @@ func makeAndConnectReactors(config *cfg.Config, n int) ([]*Reactor, []*p2p.Switc
 func newUniqueTxs(n int) types.Txs {
 	txs := make(types.Txs, n)
 	for i := 0; i < n; i++ {
-		txs[i] = kvstore.NewTxFromID(i)
+		txs[i] = types.Tx(kvstore.NewTxFromID(i))
 	}
 	return txs
 }

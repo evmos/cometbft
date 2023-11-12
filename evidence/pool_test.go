@@ -197,7 +197,7 @@ func TestEvidencePoolUpdate(t *testing.T) {
 		val, evidenceChainID)
 	require.NoError(t, err)
 	lastExtCommit := makeExtCommit(height, val.PrivKey.PubKey().Address())
-	block := types.MakeBlock(height+1, []types.Tx{}, lastExtCommit.ToCommit(), []types.Evidence{ev})
+	block := types.MakeBlock(height+1, types.Txs{}, lastExtCommit.ToCommit(), []types.Evidence{ev})
 	// update state (partially)
 	state.LastBlockHeight = height + 1
 	state.LastBlockTime = defaultEvidenceTime.Add(22 * time.Minute)

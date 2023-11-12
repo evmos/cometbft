@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/hex"
-
 	"fmt"
 	"net"
 	"net/http"
@@ -328,7 +327,8 @@ func TestCreateProposalBlock(t *testing.T) {
 	// than can fit in a block
 	txLength := 100
 	for i := 0; i <= int(maxBytes)/txLength; i++ {
-		tx := cmtrand.Bytes(txLength)
+		txBz := cmtrand.Bytes(txLength)
+		tx := types.Tx(txBz)
 		_, err := mempool.CheckTx(tx)
 		assert.NoError(t, err)
 	}
@@ -540,6 +540,7 @@ func TestNodeNewNodeDeleteGenesisFileFromDB(t *testing.T) {
 	err = stateDB.Close()
 	require.NoError(t, err)
 }
+
 func TestNodeNewNodeGenesisHashMismatch(t *testing.T) {
 	config := test.ResetTestRoot("node_new_node_genesis_hash")
 	defer os.RemoveAll(config.RootDir)
@@ -633,7 +634,6 @@ func TestNodeGenesisHashFlagMatch(t *testing.T) {
 		log.TestingLogger(),
 	)
 	require.NoError(t, err)
-
 }
 
 func TestNodeGenesisHashFlagMismatch(t *testing.T) {
